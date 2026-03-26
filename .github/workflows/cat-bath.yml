@@ -1,47 +1,24 @@
-name: Monthly Cat Bath Task Creator
+// 1. 猫の名簿（ローテーション順）
+const cats = ["ゆきちゃん", "ノブ", "みかちゃん", "まさ"];
 
-on:
-  schedule:
-    # 毎月1日の午前9時（日本時間）に実行
-    - cron: '0 0 1 * *'
-  workflow_dispatch: # 手動でテスト実行したい時用
+// 2. 現在の月を取得
+const now = new Date();
+const currentMonth = now.getMonth();
+const year = now.getFullYear();
+const monthDisplay = currentMonth + 1;
 
-jobs:
-  create_issue:
-    runs-on: ubuntu-latest
-    permissions:
-      issues: write
-    
-    steps:
-      - name: Calculate Cat Rotation and Create Issue
-        uses: actions/github-script@v6
-        with:
-          script: |
-            // 1. 猫の名簿（ローテーション順）
-            const cats = ["ゆきちゃん", "ノブ", "みかちゃん", "まさ"];
-            
-            // 2. 現在の月を取得 (0=1月, 1=2月...)
-            const now = new Date();
-            const currentMonth = now.getMonth();
-            const year = now.getFullYear();
-            const monthDisplay = currentMonth + 1;
-            
-            // 3. ローテーションの計算 (月を猫の数で割った余り)
-            // 1月なら(0%4)=0番目(ゆきちゃん)、5月なら(4%4)=0番目(ゆきちゃん)
-            const catIndex = currentMonth % cats.length;
-            const targetCat = cats[catIndex];
-            
-            // 4. 何回目の入浴か計算 (1月-4月=1回目, 5月-8月=2回目...)
-            const count = Math.floor(currentMonth / cats.length) + 1;
-            
-            // 5. Issueの作成
-            const title = `🐱 【猫風呂】${targetCat}（${year}/${monthDisplay}分 / 年${count}回目）`;
-            const body = `## 実施内容\n- [ ] 爪切り（事前準備）\n- [ ] ブラッシング\n- [ ] 入浴・シャンプー\n- [ ] ドライヤー\n- [ ] ご褒美のおやつ\n\n---\n※4ヶ月に1回の定期メンテナンスです。`;
-            
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: title,
-              body: body,
-              labels: ['cat-care'] // ラベルをつけておくと管理が楽です
-            });
+// 3. ローテーション計算
+const catIndex = currentMonth % cats.length;
+const targetCat = cats[catIndex];
+
+// 4. 何回目の入浴か
+const count = Math.floor(currentMonth / cats.length) + 1;
+
+// 5. Issueの作成
+await github.rest.issues.create({
+  owner: context.repo.owner,
+  repo: context.repo.repo,
+  title: `🐱 【猫風呂】${targetCat}（${year}/${monthDisplay}分 / 年${count}回目）`,
+  body: `## 実施内容\n- [ ] 爪切り\n- [ ] ブラッシング\n- [ ] 入浴・シャンプー\n- [ ] ドライヤー\n- [ ] ご褒美のおやつ\n\n---\n※4ヶ月に1回の定期メンテナンスです。`,
+  labels: ['cat-care'] // このラベルをトリガーにボードへ自動追加させます
+});
