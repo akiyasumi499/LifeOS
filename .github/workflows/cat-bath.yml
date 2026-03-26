@@ -2,9 +2,8 @@ name: Monthly Cat Bath Task Creator
 
 on:
   schedule:
-    # 毎月1日の午前9時（日本時間）に実行
     - cron: '0 0 1 * *'
-  workflow_dispatch: # ボタンを押して今すぐ実行したい時用
+  workflow_dispatch: 
 
 jobs:
   create_issue:
@@ -17,23 +16,16 @@ jobs:
         uses: actions/github-script@v6
         with:
           script: |
-            // 1. 猫の名簿（ローテーション順）
+            // ここから下がJavaScriptのコードです
             const cats = ["ゆきちゃん", "ノブ", "みかちゃん", "まさ"];
-            
-            // 2. 現在の月を取得
             const now = new Date();
-            const currentMonth = now.getMonth(); // 0=1月, 2=3月...
+            const currentMonth = now.getMonth();
             const year = now.getFullYear();
             const monthDisplay = currentMonth + 1;
-            
-            // 3. ローテーション計算
             const catIndex = currentMonth % cats.length;
             const targetCat = cats[catIndex];
-            
-            // 4. 何回目の入浴か
             const count = Math.floor(currentMonth / cats.length) + 1;
-            
-            // 5. Issueの作成
+
             await github.rest.issues.create({
               owner: context.repo.owner,
               repo: context.repo.repo,
